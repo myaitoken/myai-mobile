@@ -51,8 +51,10 @@ export const WalletConnectScreen: React.FC = () => {
       Alert.alert('Error', 'Please enter a wallet address');
       return;
     }
-    if (!manualAddress.startsWith('althea1')) {
-      Alert.alert('Error', 'Please enter a valid Althea wallet address (starts with althea1)');
+    // Althea bech32: prefix 'althea1' + 38 lowercase alphanumeric chars
+    const ALTHEA_RE = /^althea1[a-z0-9]{38,}$/;
+    if (!ALTHEA_RE.test(manualAddress.trim())) {
+      Alert.alert('Invalid Address', 'Please enter a valid Althea wallet address (format: althea1...)');
       return;
     }
 

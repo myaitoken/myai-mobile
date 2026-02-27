@@ -3,6 +3,12 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+
+// Secure storage helpers — use Keychain (iOS) / Keystore (Android) for tokens
+const secureGet = (key: string) => SecureStore.getItemAsync(key).catch(() => null);
+const secureSet = (key: string, val: string) => SecureStore.setItemAsync(key, val);
+const secureDel = (key: string) => SecureStore.deleteItemAsync(key).catch(() => {});
 
 const COORDINATOR_URL = 'https://api.myaitoken.io';
 const WEBSITE_URL    = 'https://myaitoken.io';
@@ -28,8 +34,8 @@ class ApiClient {
   async initialize(): Promise<void> {
     try {
       const [token, userId] = await Promise.all([
-        AsyncStorage.getItem('session_token'),
-        AsyncStorage.getItem('user_id'),
+        secureGet('session_token'),
+        secureGet('user_id'),
       ]);
       this.sessionToken = token;
       this.userId = userId;
@@ -40,8 +46,8 @@ class ApiClient {
     this.sessionToken = token;
     this.userId = userId;
     await Promise.all([
-      AsyncStorage.setItem('session_token', token),
-      AsyncStorage.setItem('user_id', userId),
+      secureSet('session_token', token),
+      secureSet('user_id', userId),
     ]);
   }
 
@@ -49,13 +55,17 @@ class ApiClient {
     this.sessionToken = null;
     this.userId = null;
     await Promise.all([
-      AsyncStorage.removeItem('session_token'),
-      AsyncStorage.removeItem('user_id'),
+      secureDel('session_token'),
+      secureDel('user_id'),
     ]);
   }
 
   isAuthenticated(): boolean {
     return !!this.sessionToken;
+  }
+
+  getSessionToken(): string | null {
+    return this.sessionToken;
   }
 
   getUserId(): string | null {
@@ -92,6 +102,10 @@ class ApiClient {
       clearTimeout(tid);
       const data = await res.json();
       if (!res.ok) {
+        // Auto-clear session on 401 — token expired or revoked
+        if (res.status === 401) {
+          await this.clearSession();
+        }
         return { success: false, error: data?.error || data?.message || `HTTP ${res.status}` };
       }
       return { success: true, data: data as T };
@@ -222,6 +236,29 @@ class ApiClient {
   async getNetworkStats(): Promise<ApiResponse<NetworkStats>> {
     return this.request('/api/stats');
   }
+  // ── Mobile Compute ───────────────────────────────────────────────────────────
+
+  async registerMobileDevice(payload: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.request('/api/v1/mobile/register', { method: 'POST', body: payload });
+  }
+
+  async sendHeartbeat(payload: Record<string, unknown>): Promise<ApiResponse<{ acknowledged: boolean; server_time: string; pending_jobs: unknown[] }>> {
+    return this.request('/api/v1/mobile/heartbeat', { method: 'POST', body: payload });
+  }
+
+  async completeMobileJob(jobId: string, payload: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.request(`/api/v1/mobile/jobs/${jobId}/complete`, { method: 'POST', body: payload });
+  }
+
+  async failMobileJob(jobId: string, payload: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.request(`/api/v1/mobile/jobs/${jobId}/fail`, { method: 'POST', body: payload });
+  }
+
+  async getMobileDeviceStatus(deviceId: string): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.request(`/api/v1/mobile/devices/${deviceId}/status`);
+  }
+
+
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -321,28 +358,6 @@ export interface NetworkStats {
   totalMyaiPaid?: number;
 }
 
-  // ── Mobile Compute ───────────────────────────────────────────────────────────
-
-  async registerMobileDevice(payload: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
-    return this.request('/api/v1/mobile/register', { method: 'POST', body: payload });
-  }
-
-  async sendHeartbeat(payload: Record<string, unknown>): Promise<ApiResponse<{ acknowledged: boolean; server_time: string; pending_jobs: unknown[] }>> {
-    return this.request('/api/v1/mobile/heartbeat', { method: 'POST', body: payload });
-  }
-
-  async completeMobileJob(jobId: string, payload: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
-    return this.request(`/api/v1/mobile/jobs/${jobId}/complete`, { method: 'POST', body: payload });
-  }
-
-  async failMobileJob(jobId: string, payload: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
-    return this.request(`/api/v1/mobile/jobs/${jobId}/fail`, { method: 'POST', body: payload });
-  }
-
-  async getMobileDeviceStatus(deviceId: string): Promise<ApiResponse<Record<string, unknown>>> {
-    return this.request(`/api/v1/mobile/devices/${deviceId}/status`);
-  }
-
-  // Singleton
+// Singleton
 export const apiClient = new ApiClient();
 export default ApiClient;
