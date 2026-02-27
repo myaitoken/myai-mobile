@@ -12,14 +12,23 @@ import { WalletScreen } from '../screens/WalletScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { AgentDetailsScreen } from '../screens/AgentDetailsScreen';
 import { JobsScreen } from '../screens/JobsScreen';
+import { WalletConnectScreen } from '../screens/WalletConnectScreen';
+import { NotificationSettingsScreen } from '../screens/NotificationSettingsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab   = createBottomTabNavigator();
 
-const TAB_BG      = '#0d0d0d';
-const TAB_BORDER  = 'rgba(255,255,255,0.07)';
-const ACCENT      = '#7000ff';
-const INACTIVE    = '#444';
+const TAB_BG     = '#0d0d0d';
+const TAB_BORDER = 'rgba(255,255,255,0.07)';
+const ACCENT     = '#7000ff';
+const INACTIVE   = '#444';
+
+const HEADER_OPTS = {
+  headerStyle: { backgroundColor: '#0d0d0d' },
+  headerTintColor: '#f0eee9',
+  headerTitleStyle: { fontWeight: '700' as const },
+  headerShadowVisible: false,
+};
 
 function MainTabs({ onLogout }: { onLogout: () => void }) {
   return (
@@ -39,35 +48,17 @@ function MainTabs({ onLogout }: { onLogout: () => void }) {
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600', letterSpacing: 0.5 },
       }}
     >
-      <Tab.Screen
-        name="Dashboard"
-        component={DashboardScreen}
-        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="view-dashboard-outline" color={color} size={size} /> }}
-      />
-      <Tab.Screen
-        name="Earnings"
-        component={EarningsScreen}
-        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="lightning-bolt" color={color} size={size} /> }}
-      />
-      <Tab.Screen
-        name="Jobs"
-        component={JobsScreen}
-        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="cpu-64-bit" color={color} size={size} /> }}
-      />
-      <Tab.Screen
-        name="Agents"
-        component={AgentsScreen}
-        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="server-network" color={color} size={size} /> }}
-      />
-      <Tab.Screen
-        name="Wallet"
-        component={WalletScreen}
-        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="wallet-outline" color={color} size={size} /> }}
-      />
-      <Tab.Screen
-        name="Settings"
-        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="cog-outline" color={color} size={size} /> }}
-      >
+      <Tab.Screen name="Dashboard" component={DashboardScreen}
+        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="view-dashboard-outline" color={color} size={size} /> }} />
+      <Tab.Screen name="Earnings" component={EarningsScreen}
+        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="lightning-bolt" color={color} size={size} /> }} />
+      <Tab.Screen name="Jobs" component={JobsScreen}
+        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="cpu-64-bit" color={color} size={size} /> }} />
+      <Tab.Screen name="Agents" component={AgentsScreen}
+        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="server-network" color={color} size={size} /> }} />
+      <Tab.Screen name="Wallet" component={WalletScreen}
+        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="wallet-outline" color={color} size={size} /> }} />
+      <Tab.Screen name="Settings" options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="cog-outline" color={color} size={size} /> }}>
         {() => <SettingsScreen onLogout={onLogout} />}
       </Tab.Screen>
     </Tab.Navigator>
@@ -93,11 +84,12 @@ export function AppNavigator({ isAuthed, onAuthChange }: { isAuthed: boolean; on
             <Stack.Screen name="Main">
               {() => <MainTabs onLogout={() => onAuthChange(false)} />}
             </Stack.Screen>
-            <Stack.Screen
-              name="AgentDetails"
-              component={AgentDetailsScreen}
-              options={{ headerShown: true, headerTitle: 'Agent Details', headerStyle: { backgroundColor: '#0d0d0d' }, headerTintColor: '#f0eee9' }}
-            />
+            <Stack.Screen name="AgentDetails" component={AgentDetailsScreen}
+              options={{ headerShown: true, headerTitle: 'Agent Details', ...HEADER_OPTS }} />
+            <Stack.Screen name="WalletConnect" component={WalletConnectScreen}
+              options={{ headerShown: true, headerTitle: 'Connect Wallet', ...HEADER_OPTS }} />
+            <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen}
+              options={{ headerShown: true, headerTitle: 'Notifications', ...HEADER_OPTS }} />
           </>
         )}
       </Stack.Navigator>

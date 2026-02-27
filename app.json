@@ -23,7 +23,8 @@
         "backgroundColor": "#080808"
       },
       "package": "io.myaitoken.app",
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": ["NOTIFICATIONS", "RECEIVE_BOOT_COMPLETED", "VIBRATE"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,11 +34,13 @@
       "websiteUrl": "https://myaitoken.io"
     },
     "plugins": [
-      "expo-router",
+      "expo-secure-store",
       [
-        "expo-secure-store",
+        "expo-notifications",
         {
-          "faceIDPermission": "Allow MyAI to use Face ID for secure login."
+          "icon": "./assets/icon.png",
+          "color": "#7000ff",
+          "sounds": []
         }
       ]
     ],
