@@ -171,7 +171,7 @@ class NotificationService {
       //   walletAddress,
       // });
 
-      console.log('Push token registered with backend for wallet:', walletAddress);
+      if (__DEV__) console.log('[Notifications] Push token registered with backend');
       return true;
     } catch (error) {
       console.error('Failed to register push token:', error);

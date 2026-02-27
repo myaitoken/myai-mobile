@@ -271,6 +271,7 @@ export function useAgentWebSocket(
           JSON.stringify({
             type: 'auth',
             wallet_address: walletAddress,
+            token: apiClient.getSessionToken(),
             timestamp: Date.now(),
           })
         );

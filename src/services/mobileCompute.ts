@@ -7,6 +7,8 @@ import * as Device from 'expo-device';
 import * as Battery from 'expo-battery';
 import * as Network from '@react-native-community/netinfo';
 import * as Application from 'expo-application';
+import * as Crypto from 'expo-crypto';
+import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { apiClient } from '../api/client';
 import { getModelPath, isModelDownloaded } from './modelManager';
@@ -281,13 +283,13 @@ class MobileComputeService {
   }
 
   private async getOrCreateDeviceId(): Promise<string> {
-    const stored = await import('@react-native-async-storage/async-storage')
-      .then(m => m.default.getItem('compute_device_id'));
+    // Use SecureStore (Keychain/Keystore) — device ID is a stable identity token
+    const stored = await SecureStore.getItemAsync('compute_device_id').catch(() => null);
     if (stored) return stored;
 
-    const id = `mobile_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-    await import('@react-native-async-storage/async-storage')
-      .then(m => m.default.setItem('compute_device_id', id));
+    // Generate a cryptographically random UUID
+    const id = Crypto.randomUUID();
+    await SecureStore.setItemAsync('compute_device_id', id).catch(() => {});
     return id;
   }
 }
