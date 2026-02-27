@@ -41,6 +41,7 @@ export const ComputeScreen: React.FC = () => {
   const [downloadedModels, setDownloadedModels] = useState<string[]>([]);
   const [downloadStates, setDownloadStates] = useState<DownloadState>({});
   const [conditions, setConditions] = useState<any>(null);
+  const [capabilities, setCapabilities] = useState<any>(null);
   const [toggling, setToggling] = useState(false);
 
   const refreshDownloads = useCallback(async () => {
@@ -59,6 +60,7 @@ export const ComputeScreen: React.FC = () => {
   useEffect(() => {
     refreshDownloads();
     refreshConditions();
+    mobileComputeService.getCapabilities().then(setCapabilities);
     mobileComputeService.setCallbacks({
       onStatusChange: (s) => setStatus(s as any),
       onJobComplete: (metrics) => {
@@ -268,7 +270,9 @@ export const ComputeScreen: React.FC = () => {
 
       {/* Model manager */}
       <Text style={S.sectionLabel}>Models</Text>
-      {AVAILABLE_MODELS.map(model => {
+      {AVAILABLE_MODELS.filter(m =>
+        !capabilities || capabilities.supported_models.includes(m.id)
+      ).map(model => {
         const downloaded = downloadedModels.includes(model.id);
         const dlState = downloadStates[model.id];
         const isDownloading = dlState?.downloading;
