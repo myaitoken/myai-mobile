@@ -14,6 +14,7 @@ import { AgentDetailsScreen } from '../screens/AgentDetailsScreen';
 import { JobsScreen } from '../screens/JobsScreen';
 import { WalletConnectScreen } from '../screens/WalletConnectScreen';
 import { NotificationSettingsScreen } from '../screens/NotificationSettingsScreen';
+import { ComputeScreen } from '../screens/ComputeScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab   = createBottomTabNavigator();
@@ -54,6 +55,8 @@ function MainTabs({ onLogout }: { onLogout: () => void }) {
         options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="lightning-bolt" color={color} size={size} /> }} />
       <Tab.Screen name="Jobs" component={JobsScreen}
         options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="cpu-64-bit" color={color} size={size} /> }} />
+      <Tab.Screen name="Compute" component={ComputeScreen}
+        options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="chip" color={color} size={size} /> }} />
       <Tab.Screen name="Agents" component={AgentsScreen}
         options={{ tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="server-network" color={color} size={size} /> }} />
       <Tab.Screen name="Wallet" component={WalletScreen}

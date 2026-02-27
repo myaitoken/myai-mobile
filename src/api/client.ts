@@ -321,6 +321,28 @@ export interface NetworkStats {
   totalMyaiPaid?: number;
 }
 
-// Singleton
+  // ── Mobile Compute ───────────────────────────────────────────────────────────
+
+  async registerMobileDevice(payload: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.request('/api/v1/mobile/register', { method: 'POST', body: payload });
+  }
+
+  async sendHeartbeat(payload: Record<string, unknown>): Promise<ApiResponse<{ acknowledged: boolean; server_time: string; pending_jobs: unknown[] }>> {
+    return this.request('/api/v1/mobile/heartbeat', { method: 'POST', body: payload });
+  }
+
+  async completeMobileJob(jobId: string, payload: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.request(`/api/v1/mobile/jobs/${jobId}/complete`, { method: 'POST', body: payload });
+  }
+
+  async failMobileJob(jobId: string, payload: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.request(`/api/v1/mobile/jobs/${jobId}/fail`, { method: 'POST', body: payload });
+  }
+
+  async getMobileDeviceStatus(deviceId: string): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.request(`/api/v1/mobile/devices/${deviceId}/status`);
+  }
+
+  // Singleton
 export const apiClient = new ApiClient();
 export default ApiClient;

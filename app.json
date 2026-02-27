@@ -15,7 +15,11 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "io.myaitoken.app",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "infoPlist": {
+        "UIBackgroundModes": ["fetch", "processing"],
+        "NSFaceIDUsageDescription": "Allow MyAI to use Face ID for secure login."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +28,12 @@
       },
       "package": "io.myaitoken.app",
       "versionCode": 1,
-      "permissions": ["NOTIFICATIONS", "RECEIVE_BOOT_COMPLETED", "VIBRATE"]
+      "permissions": [
+        "NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "FOREGROUND_SERVICE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,6 +44,8 @@
     },
     "plugins": [
       "expo-secure-store",
+      "expo-background-fetch",
+      "expo-task-manager",
       [
         "expo-notifications",
         {
