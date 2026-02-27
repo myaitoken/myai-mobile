@@ -30,6 +30,14 @@ export const AVAILABLE_MODELS: AvailableModel[] = [
     tier: 'mobile_pro',
     chip_min: 'A16',
   },
+  {
+    id: 'llama3.1:7b',
+    name: 'Llama 3.1 7B',
+    description: 'Full-size model. M-chip iPads and high-end iPhones only.',
+    sizeMb: 4700,
+    tier: 'mobile_pro',
+    chip_min: 'M1',
+  },
 ];
 
 const MODEL_DIR = `${FileSystem.cacheDirectory}myai-models/`;
@@ -70,9 +78,10 @@ export async function downloadModel(
 
   // Model download URLs — in production these come from api.myaitoken.io/models
   const MODEL_URLS: Record<string, string> = {
-    'llama3.2:1b': 'https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf',
-    'llama3.2:3b': 'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf',
-    'phi3:mini':   'https://huggingface.co/bartowski/Phi-3-mini-4k-instruct-GGUF/resolve/main/Phi-3-mini-4k-instruct-Q4_K_M.gguf',
+    'llama3.2:1b':  'https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf',
+    'llama3.2:3b':  'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf',
+    'phi3:mini':    'https://huggingface.co/bartowski/Phi-3-mini-4k-instruct-GGUF/resolve/main/Phi-3-mini-4k-instruct-Q4_K_M.gguf',
+    'llama3.1:7b':  'https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf',
   };
 
   const url = MODEL_URLS[modelId];

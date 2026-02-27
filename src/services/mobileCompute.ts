@@ -23,27 +23,46 @@ import {
 // Chip → neural engine TOPS mapping
 const CHIP_TOPS: Record<string, number> = {
   'A14': 11, 'A15': 15.8, 'A16': 17, 'A17 Pro': 35,
-  'A18': 35, 'A18 Pro': 38, 'M1': 11, 'M2': 15.8,
-  'M3': 18, 'M4': 38,
+  'A18': 35, 'A18 Pro': 38,
+  'M1': 11, 'M2': 15.8, 'M3': 18, 'M4': 38,
 };
 
-function detectChip(modelName: string | null): string {
-  if (!modelName) return 'Unknown';
-  // iPhone 15 Pro → A17 Pro, iPhone 16 → A18, etc.
+// Chip → typical RAM for M-chip iPads (iPhones use Device.totalMemory)
+const IPAD_CHIP_RAM_GB: Partial<Record<string, number>> = {
+  'M1': 8, 'M2': 8, 'M3': 8, 'M4': 16,
+};
+
+function detectChip(modelId: string | null): string {
+  if (!modelId) return 'Unknown';
+
   const map: [RegExp, string][] = [
-    [/iPhone1[67],/, 'A18'],
-    [/iPhone1[45],/, 'A17 Pro'],
-    [/iPhone1[23],/, 'A16'],
-    [/iPhone1[01],/, 'A15'],
-    [/iPhone13,/, 'A15'],
-    [/iPhone12,/, 'A14'],
-    [/iPad1[3-9],/, 'M4'],
-    [/iPad1[012],/, 'M2'],
+    // ── iPhone ──────────────────────────────────────────────────────────────
+    [/iPhone1[67],/,          'A18'],       // iPhone 16, 16 Plus, 16 Pro, 16 Pro Max
+    [/iPhone1[45],/,          'A17 Pro'],   // iPhone 15 Pro, 15 Pro Max
+    [/iPhone1[23],/,          'A16'],       // iPhone 14 Pro/Max, 15, 15 Plus
+    [/iPhone1[01],/,          'A15'],       // iPhone 13 Pro/Max, 14, 14 Plus
+    [/iPhone13,/,             'A15'],       // iPhone 13, 13 mini
+    [/iPhone12,/,             'A14'],       // iPhone 12 series
+
+    // ── iPad M4 ─────────────────────────────────────────────────────────────
+    [/iPad16,[1-6]/,          'M4'],        // iPad Pro M4 (11"/13"), iPad mini M4
+
+    // ── iPad M2 ─────────────────────────────────────────────────────────────
+    [/iPad14,[3-9]/,          'M2'],        // iPad Pro M2 (11"/12.9"), iPad Air M2
+
+    // ── iPad M1 ─────────────────────────────────────────────────────────────
+    [/iPad13,1[6-9]/,         'M1'],        // iPad Air M1 (5th gen)
+    [/iPad8,(9|10|11|12)/,    'M1'],        // iPad Pro M1 (11"/12.9")
   ];
+
   for (const [re, chip] of map) {
-    if (re.test(modelName)) return chip;
+    if (re.test(modelId)) return chip;
   }
   return 'A15'; // safe fallback
+}
+
+function isIPad(modelId: string | null): boolean {
+  return !!modelId && modelId.startsWith('iPad');
 }
 
 class MobileComputeService {
@@ -69,19 +88,35 @@ class MobileComputeService {
   }
 
   async getCapabilities(): Promise<DeviceCapabilities> {
-    const modelName = Device.modelId ?? Device.modelName ?? null;
-    const chip = detectChip(modelName);
+    const modelId = Device.modelId ?? null;
+    const chip = detectChip(modelId);
     const tops = CHIP_TOPS[chip] ?? 11;
-    const ram = (Device.totalMemory ?? 4_000_000_000) / 1_073_741_824;
+    const ipad = isIPad(modelId);
+
+    // M-chip iPads: use known RAM values; iPhones: read from Device.totalMemory
+    const ramBytes = Device.totalMemory ?? 4_000_000_000;
+    const ramFromDevice = ramBytes / 1_073_741_824;
+    const ram = ipad ? (IPAD_CHIP_RAM_GB[chip] ?? Math.round(ramFromDevice)) : Math.round(ramFromDevice);
+
+    // Model support based on TOPS + RAM
+    let supported_models: string[];
+    if (tops >= 38 || ram >= 16) {
+      // M4 / A18 Pro — can run 7B+ comfortably
+      supported_models = ['llama3.2:1b', 'llama3.2:3b', 'phi3:mini', 'llama3.1:7b'];
+    } else if (tops >= 35 || ram >= 8) {
+      // M1–M3, A17 Pro, A18 — 3B models fine
+      supported_models = ['llama3.2:1b', 'llama3.2:3b', 'phi3:mini'];
+    } else {
+      // A14–A16 iPhones — stick to 1B
+      supported_models = ['llama3.2:1b'];
+    }
 
     return {
       chip,
-      ram_gb: Math.round(ram),
+      ram_gb: ram,
       neural_engine_tops: tops,
-      storage_gb: 128, // expo-device doesn't expose storage; use placeholder
-      supported_models: tops >= 35
-        ? ['llama3.2:1b', 'llama3.2:3b', 'phi3:mini']
-        : ['llama3.2:1b'],
+      storage_gb: 128, // expo-device doesn't expose storage
+      supported_models,
     };
   }
 
