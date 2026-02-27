@@ -106,6 +106,20 @@ class ApiClient {
 
   // ── Auth ──────────────────────────────────────────────────────────────────
 
+  private walletAddress: string | null = null;
+
+  setWalletAddress(address: string): void {
+    this.walletAddress = address;
+  }
+
+  getWalletAddress(): string | null {
+    return this.walletAddress;
+  }
+
+  async getWalletInfo(): Promise<ApiResponse<WalletInfo>> {
+    return this.request('/api/wallet');
+  }
+
   async login(email: string, password: string): Promise<ApiResponse<{ token: string; user: UserProfile }>> {
     return this.request('/api/mobile/auth', {
       method: 'POST',
